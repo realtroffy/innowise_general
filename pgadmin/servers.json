@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Image DB",
+      "Group": "Image",
+      "Host": "postgres",
+      "Port": 5432,
+      "Username": "postgres",
+      "MaintenanceDB": "image_db",
+      "SSLMode": "prefer",
+      "PassFile": "../../pgpass"
+    }
+  }
+}

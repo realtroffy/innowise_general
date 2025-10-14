@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Service</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h2 id="form-title">Login</h2>
+
+    <form id="auth-form">
+        <!-- Username -->
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Username" required />
+            <div class="error" id="username-error"></div>
+        </div>
+
+        <!-- Email -->
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Email" style="display:none;" />
+            <div class="error" id="email-error"></div>
+        </div>
+
+        <!-- Password -->
+        <div class="input-group password-wrapper">
+            <input type="password" id="password" placeholder="Password" required />
+            <span id="toggle-password" class="password-icon">👁️</span>
+            <div class="error" id="password-error"></div>
+        </div>
+
+        <button type="submit" id="submit-btn">Login</button>
+    </form>
+
+    <p id="toggle-text">
+        <span id="toggle-message">Don't have an account?</span>
+        <a href="#" id="toggle-link">Register</a>
+    </p>
+
+    <button id="logout-btn" style="display:none;">Logout</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

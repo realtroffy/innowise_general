@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+                    - id: auth-service-open
+                      uri: http://authentication-service:8080
+                      predicates:
+                        - Path=/api/auth/login,/api/auth/register
+
+                    - id: auth-service-protected
+                      uri: http://authentication-service:8080
+                      predicates:
+                        - Path=/api/auth/refresh,/api/auth/validate
+                      filters:
+                        - AuthorizationHeaderFilter
+
+                    - id: image-service
+                      uri: http://image-service:8080
+                      predicates:
+                        - Path=/api/images/**,/api/users/**
+                      filters:
+                        - AuthorizationHeaderFilter
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin
+            - AddResponseHeader=X-Gateway-Version, 1.0.0
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                          allowedOrigins:
+                            - "http://localhost:3000"
+                          allowedMethods:
+                            - GET
+                            - POST
+                            - PUT
+                            - DELETE
+                            - OPTIONS
+                          allowedHeaders: "*"
+
+gateway:
+  base-url: http://authentication-service:8080
+  auth:
+    validate-url: /api/auth/validate
+
+server:
+  port: 8080
