@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -18,7 +16,7 @@ services:
       start_period: 10s
 
   localstack:
-    image: localstack/localstack:4.9.2
+    image: localstack/localstack:3.8.1
     environment:
       - SERVICES=s3
       - AWS_EXECUTION_ENV=True
@@ -50,8 +48,6 @@ services:
       chmod 600 /var/lib/pgadmin/pgpass;
       /entrypoint.sh
       "
-    ports:
-      - "5050:80"
     depends_on:
       postgres:
         condition: service_healthy
@@ -92,7 +88,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - GATEWAY_BASE_URL=${GATEWAY_BASE_URL}
+      - GATEWAY_BASE_URL=http://authentication-service:8080
+    depends_on:
+      authentication-service:
+        condition: service_started
+      image-service:
+        condition: service_started
 
   frontend:
     build:

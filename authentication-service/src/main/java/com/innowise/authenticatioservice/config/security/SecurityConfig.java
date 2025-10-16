@@ -17,17 +17,25 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    public static final String[] WHITELIST = {
+            "/api/auth/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-ui/index.html",
+            "/swagger-resources/**",
+            "/v3/api-docs/**",
+            "/webjars/**"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        request -> request
-                                .requestMatchers("/api/auth/**").permitAll()
-                                .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(WHITELIST).permitAll()
+                        .anyRequest().authenticated())
                 .build();
     }
 

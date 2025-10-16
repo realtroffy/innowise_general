@@ -6,28 +6,42 @@ spring:
       server:
         webflux:
           routes:
+            # Authentication Service - Open API routes (no auth required)
                     - id: auth-service-open
                       uri: http://authentication-service:8080
                       predicates:
                         - Path=/api/auth/login,/api/auth/register
-
+                    # Authentication Service - Protected API routes
                     - id: auth-service-protected
                       uri: http://authentication-service:8080
                       predicates:
                         - Path=/api/auth/refresh,/api/auth/validate
                       filters:
                         - AuthorizationHeaderFilter
-
+                    # Authentication Service - Swagger routes (no auth required)
+                    - id: auth-service-swagger
+                      uri: http://authentication-service:8080
+                      predicates:
+                        - Path=/auth-service/v3/api-docs/**,/auth-service/swagger-ui/**
+                      filters:
+                        - RewritePath=/auth-service/(?<path>.*), /$\{path}
+                    # Image Service - API routes
                     - id: image-service
                       uri: http://image-service:8080
                       predicates:
                         - Path=/api/images/**,/api/users/**
                       filters:
                         - AuthorizationHeaderFilter
+                    # Image Service - Swagger routes (no auth required)
+                    - id: image-service-swagger
+                      uri: http://image-service:8080
+                      predicates:
+                        - Path=/image-service/v3/api-docs/**,/image-service/swagger-ui/**
+                      filters:
+                        - RewritePath=/image-service/(?<path>.*), /$\{path}
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin
             - AddResponseHeader=X-Gateway-Version, 1.0.0
-
           globalcors:
             cors-configurations:
               '[/**]':
@@ -40,11 +54,24 @@ spring:
                             - DELETE
                             - OPTIONS
                           allowedHeaders: "*"
+springdoc:
+  swagger-ui:
+    enabled: true
+    config-url: /v3/api-docs/swagger-config
+    path: /swagger-ui.html
+    urls:
+      - url: /v3/api-docs
+        name: api-gateway
+      - url: /auth-service/v3/api-docs
+        name: auth-service
+      - url: /image-service/v3/api-docs
+        name: image-service
+
+
+server:
+  port: 8080
 
 gateway:
   base-url: http://authentication-service:8080
   auth:
     validate-url: /api/auth/validate
-
-server:
-  port: 8080
