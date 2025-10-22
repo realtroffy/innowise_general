@@ -1,0 +1,246 @@
+openapi: 3.0.3
+info:
+  title: Authentication service
+  version: 1.0.0
+  description: User authentication and token management
+servers:
+  - url: http://localhost:8080
+    description: Api gateway
+
+security:
+  - JWT: []
+
+paths:
+  /api/auth/register:
+    post:
+      security: []
+      tags:
+        - authentication
+      summary: Register a new user
+      description: |
+        Registers a new user in the system.  
+        Constraints:  
+        - `username` – 3-50 characters, required.  
+        - `email` – valid e-mail, ≤ 100 characters, required.  
+        - `password` – minimum 8 characters, required.
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: User registered successfully
+        '400':
+          description: Invalid data or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      security: []
+      tags:
+        - authentication
+      summary: User login
+      description: |
+        Authenticates a user and returns access + refresh JWT.  
+        See constraints in the `LoginRequest` schema.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Success – returns token pair
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Input validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/validate:
+    post:
+      tags:
+        - authentication
+      summary: Validate access token
+      description: |
+        Validates the access-token (JWT).
+      operationId: validateToken
+      security:
+        - JWT: []
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidatedResponse'
+        '400':
+          $ref: '#/components/responses/BadToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - authentication
+      summary: Refresh access token
+      description: |
+        Issues a new access-token pair using the refresh-token.
+      operationId: refreshToken
+      security:
+        - JWT: []
+      responses:
+        '200':
+          description: New token pair
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    AuthorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+        example: Bearer eyJhbGciOiJIUzI1NiJ9...
+
+  responses:
+    BadToken:
+      description: Missing, malformed or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Invalid, expired, unsupported or malformed token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Must not be blank, 3-50 characters
+          example: user123
+        email:
+          type: string
+          format: email
+          maxLength: 100
+          description: Valid e-mail, ≤ 100 characters
+          example: user@example.com
+        password:
+          type: string
+          minLength: 8
+          description: Must not be blank, ≥ 8 characters
+          example: password123
+
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Must not be blank, 3-50 characters
+          example: user123
+        password:
+          type: string
+          minLength: 8
+          description: Must not be blank, ≥ 8 characters
+          example: password123
+
+    TokenResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - accessToken
+        - refreshToken
+      properties:
+        accessToken:
+          type: string
+          description: JWT access-token
+          example: eyJhbGciOiJIUzI1NiJ9.ACCESS
+        refreshToken:
+          type: string
+          description: JWT refresh-token
+          example: eyJhbGciOiJIUzI1NiJ9.REFRESH
+
+    ValidatedResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - valid
+        - userId
+      properties:
+        valid:
+          type: boolean
+          description: true – token is valid
+          example: true
+        userId:
+          type: integer
+          format: int64
+          description: User identifier
+          example: 123
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error description
+          example: User already exists

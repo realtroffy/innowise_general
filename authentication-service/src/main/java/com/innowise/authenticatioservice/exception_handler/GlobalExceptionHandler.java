@@ -9,7 +9,9 @@ import com.innowise.authenticatioservice.exception.UserAlreadyExistException;
 import com.innowise.authenticatioservice.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +26,12 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException e) {
         log.error(e.getMessage());
@@ -37,9 +45,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserAlreadyExistException.class)
-    public ResponseEntity<ErrorResponse> handleUserAlreadyExistException(UserAlreadyExistException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.status(BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+    public ResponseEntity<ErrorResponse> handle(UserAlreadyExistException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
@@ -70,7 +80,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         int index = exception.getMessage().lastIndexOf("[");
         int index2 = exception.getMessage().lastIndexOf("]");
-        String message = exception.getMessage().substring(index+1, index2-1);
+        String message = exception.getMessage().substring(index + 1, index2 - 1);
         log.error(message);
         return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }

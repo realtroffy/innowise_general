@@ -19,3 +19,9 @@ jwt:
   secret: A1l3ObSDi7Cg6HBC4k5QMFYSzoVcGak8XsGbzr8jaIAF45OwI0T1ywUG0dgMYfl5W2OwcfuNm5jHxwISt8KKa1XnNIaRYh+b2E0jTCq7L8EG
   access-expiration: 900000  # 15 minutes in ms
   refresh-expiration: 604800000  # 7 days in ms
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    url: /openapi/openapi.yaml

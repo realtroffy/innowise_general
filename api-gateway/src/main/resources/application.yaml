@@ -18,13 +18,20 @@ spring:
                         - Path=/api/auth/refresh,/api/auth/validate
                       filters:
                         - AuthorizationHeaderFilter
-                    # Authentication Service - Swagger routes (no auth required)
-                    - id: auth-service-swagger
+                    # ----------  AUTH-SERVICE OPENAPI YAML  ----------
+                    - id: auth-service-openapi-yaml
                       uri: http://authentication-service:8080
                       predicates:
-                        - Path=/auth-service/v3/api-docs/**,/auth-service/swagger-ui/**
+                        - Path=/auth-service/openapi.yaml
                       filters:
-                        - RewritePath=/auth-service/(?<path>.*), /$\{path}
+                        - RewritePath=/auth-service/openapi.yaml, /openapi/openapi.yaml
+                    # ----------  AUTH-SERVICE SWAGGER-UI  ----------
+                    - id: auth-service-swagger-ui
+                      uri: http://authentication-service:8080
+                      predicates:
+                        - Path=/auth-service/swagger-ui/**
+                      filters:
+                        - RewritePath="/auth-service/(?<path>.*)", "$\{path}"
                     # Image Service - API routes
                     - id: image-service
                       uri: http://image-service:8080
@@ -57,12 +64,11 @@ spring:
 springdoc:
   swagger-ui:
     enabled: true
-    config-url: /v3/api-docs/swagger-config
     path: /swagger-ui.html
     urls:
       - url: /v3/api-docs
         name: api-gateway
-      - url: /auth-service/v3/api-docs
+      - url: /auth-service/openapi.yaml
         name: auth-service
       - url: /image-service/v3/api-docs
         name: image-service
