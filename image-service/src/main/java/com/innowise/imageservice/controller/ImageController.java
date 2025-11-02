@@ -2,8 +2,10 @@ package com.innowise.imageservice.controller;
 
 import com.innowise.imageservice.dto.CommentRequestDto;
 import com.innowise.imageservice.dto.CommentResponseDto;
+import com.innowise.imageservice.dto.CommentWithOwnersResponseDto;
 import com.innowise.imageservice.dto.ImageRequestDto;
 import com.innowise.imageservice.dto.ImageResponseDto;
+import com.innowise.imageservice.dto.ImageWithLikeByCurrentUserResponseDto;
 import com.innowise.imageservice.dto.PaginatedSliceResponseDto;
 import com.innowise.imageservice.service.ImageService;
 
@@ -44,15 +46,16 @@ public class ImageController implements ImageControllerSwagger {
     }
 
     @GetMapping("/images/{id}")
-    public ResponseEntity<ImageResponseDto> getById(@PathVariable("id") Long imageId) {
-        return ResponseEntity.ok(imageService.getById(imageId));
+    public ResponseEntity<ImageWithLikeByCurrentUserResponseDto> getById(@RequestHeader("X-User-Id") String currentUserId,
+                                                                         @PathVariable("id") Long imageId) {
+        return ResponseEntity.ok(imageService.getById(currentUserId, imageId));
     }
 
 
     @GetMapping("/users/images")
     public ResponseEntity<PaginatedSliceResponseDto<ImageResponseDto>> getAllByUserId(@RequestHeader("X-User-Id") String currentUserId,
-                                                                                       @RequestParam(defaultValue = "0") int page,
-                                                                                       @RequestParam(defaultValue = "20") int size) {
+                                                                                      @RequestParam(defaultValue = "0") int page,
+                                                                                      @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(imageService.getAllByUserId(currentUserId, page, size));
     }
 
@@ -70,16 +73,19 @@ public class ImageController implements ImageControllerSwagger {
 
     @PostMapping("/images/{id}/comments")
     public ResponseEntity<CommentResponseDto> addComment(@RequestHeader("X-User-Id") String userId,
+                                                         @RequestHeader("X-User-Name") String userName,
                                                          @PathVariable("id") Long imageId,
                                                          @Valid @RequestBody CommentRequestDto commentRequestDto) {
-        return new ResponseEntity<>(imageService.addComment(userId, imageId, commentRequestDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(imageService.addComment(userId, userName, imageId, commentRequestDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/images/{id}/comments")
-    public ResponseEntity<PaginatedSliceResponseDto<CommentResponseDto>> getAllCommentsByImageId(@PathVariable("id") Long imageId,
-                                                                                                 @RequestParam(defaultValue = "0") int page,
-                                                                                                 @RequestParam(defaultValue = "5") int size) {
-        return ResponseEntity.ok(imageService.getAllCommentsByImageId(imageId, page, size));
+    public ResponseEntity<PaginatedSliceResponseDto<CommentWithOwnersResponseDto>> getAllCommentsByImageId(@RequestHeader("X-User-Id") String userId,
+                                                                                                           @PathVariable("id") Long imageId,
+                                                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                                                           @RequestParam(defaultValue = "5") int size) {
+        return ResponseEntity.ok(
+                imageService.getAllCommentsByImageId(imageId, userId, page, size));
     }
 
 

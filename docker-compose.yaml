@@ -16,17 +16,12 @@ services:
       start_period: 10s
 
   localstack:
-    image: localstack/localstack:3.8.1
-    environment:
-      - SERVICES=s3
-      - AWS_EXECUTION_ENV=True
-      - DEBUG=1
+    image: gresau/localstack-persist:4
     ports:
       - "4566:4566"
-      - "4510-4559:4510-4559"
     volumes:
       - "./init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
-      - localstack_data:/var/lib/localstack
+      - "./my-localstack-data:/persisted-data"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
@@ -95,13 +90,15 @@ services:
       image-service:
         condition: service_started
 
-  frontend:
-    build:
-      context: ./frontend
-    container_name: frontend
-    ports:
-      - "3000:80"
+#  react-frontend:
+#    build:
+#      context: ./react-frontend
+#    container_name: react-frontend
+#    ports:
+#      - "3000:80"
+#    depends_on:
+#      api-gateway:
+#        condition: service_started
 
 volumes:
   postgres_data:
-  localstack_data:

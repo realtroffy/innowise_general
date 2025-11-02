@@ -55,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
     public TokenResponse login(LoginRequest request) {
         try {
             authenticationManager.authenticate(
@@ -72,18 +73,20 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(accessToken, refreshToken);
     }
 
+    @Override
     public ValidatedResponse validateAccessToken(String token) {
         String extractedToken = TokenExtractor.extractToken(token);
         String usernameFromToken = jwtService.extractUsername(extractedToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(usernameFromToken);
         User user = (User) userDetails;
         if (isAccessTokenValid(extractedToken, userDetails)){
-            return new ValidatedResponse(true, user.getId());
+            return new ValidatedResponse(true, user.getId(), user.getUsername());
         } else {
-            return new ValidatedResponse(false, null);
+            return new ValidatedResponse(false, null, null);
         }
     }
 
+    @Override
     public TokenResponse refreshAccessToken(String refreshToken) {
         String extractedToken = TokenExtractor.extractToken(refreshToken);
         String tokenType = jwtService.extractTokenType(extractedToken);

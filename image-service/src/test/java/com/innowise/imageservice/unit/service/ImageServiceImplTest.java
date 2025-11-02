@@ -5,6 +5,7 @@ import com.innowise.imageservice.dto.CommentRequestDto;
 import com.innowise.imageservice.dto.CommentResponseDto;
 import com.innowise.imageservice.dto.ImageRequestDto;
 import com.innowise.imageservice.dto.ImageResponseDto;
+import com.innowise.imageservice.dto.ImageWithLikeByCurrentUserResponseDto;
 import com.innowise.imageservice.dto.PaginatedSliceResponseDto;
 import com.innowise.imageservice.exception.ImageFileRequiredException;
 import com.innowise.imageservice.exception.ImageNotFoundException;
@@ -57,6 +58,8 @@ class ImageServiceImplTest {
     private static final long USER_ID_1 = 1L;
     private static final long USER_ID_2 = 2L;
     private static final String USER_ID_1_STRING = "1";
+    private static final String USER_NAME_STRING = "User";
+    private static final boolean LIKED_BY_CURRENT_USER_BOOLEAN = false;
     private static final long ZERO_LIKES = 0L;
     private static final long ONE_LIKE = 1L;
     private static final String IMAGE_DESCRIPTION = "description";
@@ -138,22 +141,21 @@ class ImageServiceImplTest {
 
     @Test
     void getById_shouldReturnImage() {
-        Image image = Image.builder().id(IMAGE_ID).build();
-        ImageResponseDto dto = new ImageResponseDto(IMAGE_ID, IMAGE_URL, SHORT_DESCRIPTION, UPLOADED_AT, ZERO_LIKES, USER_ID_1);
+        ImageWithLikeByCurrentUserResponseDto imageWithLikeDto = new ImageWithLikeByCurrentUserResponseDto(
+                IMAGE_ID, IMAGE_URL, SHORT_DESCRIPTION, UPLOADED_AT, ZERO_LIKES, LIKED_BY_CURRENT_USER_BOOLEAN, USER_ID_1);
 
-        when(imageRepository.findById(IMAGE_ID)).thenReturn(Optional.of(image));
-        when(imageMapper.toImageResponseDto(image)).thenReturn(dto);
+        when(imageRepository.findWithLikeByCurrentUserId(USER_ID_1, IMAGE_ID)).thenReturn(Optional.of(imageWithLikeDto));
 
-        ImageResponseDto result = imageService.getById(IMAGE_ID);
+        ImageWithLikeByCurrentUserResponseDto result = imageService.getById(USER_ID_1_STRING, IMAGE_ID);
 
-        assertEquals(dto, result);
+        assertEquals(imageWithLikeDto, result);
     }
 
     @Test
     void getById_shouldThrowIfNotFound() {
-        when(imageRepository.findById(IMAGE_ID)).thenReturn(Optional.empty());
+        when(imageRepository.findWithLikeByCurrentUserId(USER_ID_1, IMAGE_ID)).thenReturn(Optional.empty());
 
-        assertThrows(ImageNotFoundException.class, () -> imageService.getById(IMAGE_ID));
+        assertThrows(ImageNotFoundException.class, () -> imageService.getById(USER_ID_1_STRING, IMAGE_ID));
     }
 
     @Test
@@ -190,13 +192,13 @@ class ImageServiceImplTest {
         Image image = Image.builder().id(IMAGE_ID).build();
         Comment comment = Comment.builder().id(COMMENT_ID).build();
         CommentRequestDto requestDto = new CommentRequestDto(COMMENT_CONTENT);
-        CommentResponseDto dto = new CommentResponseDto(COMMENT_ID, COMMENT_CONTENT, UPLOADED_AT, USER_ID_1, IMAGE_ID);
+        CommentResponseDto dto = new CommentResponseDto(COMMENT_ID, COMMENT_CONTENT, UPLOADED_AT, USER_ID_1, IMAGE_ID, USER_NAME_STRING);
 
         when(imageRepository.findById(IMAGE_ID)).thenReturn(Optional.of(image));
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(commentMapper.toCommentResponseDto(comment)).thenReturn(dto);
 
-        CommentResponseDto result = imageService.addComment(USER_ID_1_STRING, IMAGE_ID, requestDto);
+        CommentResponseDto result = imageService.addComment(USER_ID_1_STRING, USER_NAME_STRING, IMAGE_ID, requestDto);
 
         assertEquals(dto, result);
     }
@@ -230,7 +232,7 @@ class ImageServiceImplTest {
         Image image = Image.builder().id(IMAGE_ID).build();
         Comment comment = Comment.builder().id(COMMENT_ID).userId(USER_ID_1).content(OLD_COMMENT_CONTENT).build();
         CommentRequestDto requestDto = new CommentRequestDto(NEW_COMMENT_CONTENT);
-        CommentResponseDto dto = new CommentResponseDto(COMMENT_ID, NEW_COMMENT_CONTENT, UPLOADED_AT, USER_ID_1, IMAGE_ID);
+        CommentResponseDto dto = new CommentResponseDto(COMMENT_ID, NEW_COMMENT_CONTENT, UPLOADED_AT, USER_ID_1, IMAGE_ID, USER_NAME_STRING);
 
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(comment));
         when(imageRepository.findById(IMAGE_ID)).thenReturn(Optional.of(image));
