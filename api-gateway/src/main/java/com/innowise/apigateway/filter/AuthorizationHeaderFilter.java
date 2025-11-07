@@ -53,12 +53,10 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
                             return response.bodyToMono(ValidatedResponse.class)
                                     .flatMap(validatedResponse -> {
                                         String userId = String.valueOf(validatedResponse.userId());
-                                        String userName = validatedResponse.userName();
 
                                         ServerHttpRequest mutatedRequest = exchange.getRequest()
                                                 .mutate()
                                                 .header("X-User-Id", userId)
-                                                .header("X-User-Name", userName)
                                                 .build();
 
                                         return chain.filter(exchange.mutate().request(mutatedRequest).build());

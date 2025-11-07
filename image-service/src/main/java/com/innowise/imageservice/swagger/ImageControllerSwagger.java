@@ -108,7 +108,7 @@ public interface ImageControllerSwagger {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/users/images")
-    ResponseEntity<PaginatedSliceResponseDto<ImageResponseDto>> getAllByUserId(
+    ResponseEntity<PaginatedSliceResponseDto<ImageWithLikeByCurrentUserResponseDto>> getAllByUserId(
             @Parameter(hidden = true)
             @RequestHeader("X-User-Id") String currentUserId,
             @Parameter(description = "Page number (default: 0)")
@@ -131,7 +131,9 @@ public interface ImageControllerSwagger {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/images")
-    ResponseEntity<PaginatedSliceResponseDto<ImageResponseDto>> getAll(
+    ResponseEntity<PaginatedSliceResponseDto<ImageWithLikeByCurrentUserResponseDto>> getAll(
+            @Parameter(hidden = true)
+            @RequestHeader("X-User-Id") String currentUserId,
             @Parameter(description = "Page number (default: 0)")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size (default: 20)")
@@ -186,8 +188,6 @@ public interface ImageControllerSwagger {
     ResponseEntity<CommentResponseDto> addComment(
             @Parameter(hidden = true)
             @RequestHeader("X-User-Id") String userId,
-            @Parameter(hidden = true)
-            @RequestHeader("X-User-Name") String userName,
             @Parameter(description = "ID of the image to comment on", required = true)
             @PathVariable("id") Long imageId,
             @Parameter(description = "Comment details (content)", required = true)

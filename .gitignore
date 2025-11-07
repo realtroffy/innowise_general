@@ -40,3 +40,5 @@ build/
 **/mvnw
 **/mvnw.cmd
 /.env
+
+my-localstack-data

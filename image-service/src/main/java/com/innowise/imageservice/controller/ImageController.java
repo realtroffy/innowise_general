@@ -53,16 +53,17 @@ public class ImageController implements ImageControllerSwagger {
 
 
     @GetMapping("/users/images")
-    public ResponseEntity<PaginatedSliceResponseDto<ImageResponseDto>> getAllByUserId(@RequestHeader("X-User-Id") String currentUserId,
+    public ResponseEntity<PaginatedSliceResponseDto<ImageWithLikeByCurrentUserResponseDto>> getAllByUserId(@RequestHeader("X-User-Id") String currentUserId,
                                                                                       @RequestParam(defaultValue = "0") int page,
                                                                                       @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(imageService.getAllByUserId(currentUserId, page, size));
     }
 
     @GetMapping("/images")
-    public ResponseEntity<PaginatedSliceResponseDto<ImageResponseDto>> getAll(@RequestParam(defaultValue = "0") int page,
-                                                                                @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(imageService.getAll(page, size));
+    public ResponseEntity<PaginatedSliceResponseDto<ImageWithLikeByCurrentUserResponseDto>> getAll(@RequestHeader("X-User-Id") String userId,
+                                                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                                                   @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(imageService.getAll(userId, page, size));
     }
 
     @PutMapping("/images/{id}/likes")
@@ -73,10 +74,9 @@ public class ImageController implements ImageControllerSwagger {
 
     @PostMapping("/images/{id}/comments")
     public ResponseEntity<CommentResponseDto> addComment(@RequestHeader("X-User-Id") String userId,
-                                                         @RequestHeader("X-User-Name") String userName,
                                                          @PathVariable("id") Long imageId,
                                                          @Valid @RequestBody CommentRequestDto commentRequestDto) {
-        return new ResponseEntity<>(imageService.addComment(userId, userName, imageId, commentRequestDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(imageService.addComment(userId, imageId, commentRequestDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/images/{id}/comments")

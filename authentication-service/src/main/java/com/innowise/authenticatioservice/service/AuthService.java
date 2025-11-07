@@ -3,7 +3,10 @@ package com.innowise.authenticatioservice.service;
 import com.innowise.authenticatioservice.dto.LoginRequest;
 import com.innowise.authenticatioservice.dto.RegisterRequest;
 import com.innowise.authenticatioservice.dto.TokenResponse;
+import com.innowise.authenticatioservice.dto.UserNamesResponseDto;
 import com.innowise.authenticatioservice.dto.ValidatedResponse;
+
+import java.util.List;
 
 public interface AuthService {
 
@@ -14,4 +17,6 @@ public interface AuthService {
     TokenResponse refreshAccessToken(String refreshToken);
 
     ValidatedResponse validateAccessToken(String token);
+
+    UserNamesResponseDto getUserNamesByIds(List<Long> userIds);
 }
