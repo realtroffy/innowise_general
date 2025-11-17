@@ -3,6 +3,8 @@ package com.innowise.authenticatioservice.service.impl;
 import com.innowise.authenticatioservice.dto.LoginRequest;
 import com.innowise.authenticatioservice.dto.RegisterRequest;
 import com.innowise.authenticatioservice.dto.TokenResponse;
+import com.innowise.authenticatioservice.dto.UserNameDto;
+import com.innowise.authenticatioservice.dto.UserNamesResponseDto;
 import com.innowise.authenticatioservice.dto.ValidatedResponse;
 import com.innowise.authenticatioservice.exception.InvalidCredentialsException;
 import com.innowise.authenticatioservice.exception.InvalidRefreshTokenException;
@@ -21,6 +23,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
     public TokenResponse login(LoginRequest request) {
         try {
             authenticationManager.authenticate(
@@ -72,18 +79,20 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(accessToken, refreshToken);
     }
 
+    @Override
     public ValidatedResponse validateAccessToken(String token) {
         String extractedToken = TokenExtractor.extractToken(token);
         String usernameFromToken = jwtService.extractUsername(extractedToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(usernameFromToken);
         User user = (User) userDetails;
         if (isAccessTokenValid(extractedToken, userDetails)){
-            return new ValidatedResponse(true, user.getId());
+            return new ValidatedResponse(true, user.getId(), user.getUsername());
         } else {
-            return new ValidatedResponse(false, null);
+            return new ValidatedResponse(false, null, null);
         }
     }
 
+    @Override
     public TokenResponse refreshAccessToken(String refreshToken) {
         String extractedToken = TokenExtractor.extractToken(refreshToken);
         String tokenType = jwtService.extractTokenType(extractedToken);
@@ -114,5 +123,15 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
         return isTokenValid(token, userDetails);
+    }
+
+    @Override
+    public UserNamesResponseDto getUserNamesByIds(List<Long> userIds) {
+        List<UserNameDto> userNames = userRepository.findByIdIn(userIds);
+
+        Map<Long, String> namesMap = userNames.stream()
+                .collect(Collectors.toMap(UserNameDto::id, UserNameDto::username));
+
+        return new UserNamesResponseDto(namesMap);
     }
 }

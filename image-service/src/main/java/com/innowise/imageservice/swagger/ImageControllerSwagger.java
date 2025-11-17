@@ -2,9 +2,11 @@ package com.innowise.imageservice.swagger;
 
 import com.innowise.imageservice.dto.CommentRequestDto;
 import com.innowise.imageservice.dto.CommentResponseDto;
+import com.innowise.imageservice.dto.CommentWithOwnersResponseDto;
 import com.innowise.imageservice.dto.ErrorResponse;
 import com.innowise.imageservice.dto.ImageRequestDto;
 import com.innowise.imageservice.dto.ImageResponseDto;
+import com.innowise.imageservice.dto.ImageWithLikeByCurrentUserResponseDto;
 import com.innowise.imageservice.dto.PaginatedSliceResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -84,7 +86,9 @@ public interface ImageControllerSwagger {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/images/{id}")
-    ResponseEntity<ImageResponseDto> getById(
+    ResponseEntity<ImageWithLikeByCurrentUserResponseDto> getById(
+            @Parameter(hidden = true)
+            @RequestHeader("X-User-Id") String currentUserId,
             @Parameter(description = "ID of the image to retrieve", required = true)
             @PathVariable("id") Long imageId
     );
@@ -104,7 +108,7 @@ public interface ImageControllerSwagger {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/users/images")
-    ResponseEntity<PaginatedSliceResponseDto<ImageResponseDto>> getAllByUserId(
+    ResponseEntity<PaginatedSliceResponseDto<ImageWithLikeByCurrentUserResponseDto>> getAllByUserId(
             @Parameter(hidden = true)
             @RequestHeader("X-User-Id") String currentUserId,
             @Parameter(description = "Page number (default: 0)")
@@ -127,7 +131,9 @@ public interface ImageControllerSwagger {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/images")
-    ResponseEntity<PaginatedSliceResponseDto<ImageResponseDto>> getAll(
+    ResponseEntity<PaginatedSliceResponseDto<ImageWithLikeByCurrentUserResponseDto>> getAll(
+            @Parameter(hidden = true)
+            @RequestHeader("X-User-Id") String currentUserId,
             @Parameter(description = "Page number (default: 0)")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size (default: 20)")
@@ -204,7 +210,9 @@ public interface ImageControllerSwagger {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/images/{id}/comments")
-    ResponseEntity<PaginatedSliceResponseDto<CommentResponseDto>> getAllCommentsByImageId(
+    ResponseEntity<PaginatedSliceResponseDto<CommentWithOwnersResponseDto>> getAllCommentsByImageId(
+            @Parameter(hidden = true)
+            @RequestHeader("X-User-Id") String userId,
             @Parameter(description = "ID of the image to retrieve comments for", required = true)
             @PathVariable("id") Long imageId,
             @Parameter(description = "Page number (default: 0)")

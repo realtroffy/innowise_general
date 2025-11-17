@@ -25,3 +25,7 @@ springdoc:
     enabled: false
   swagger-ui:
     url: /openapi/openapi.yaml
+
+auth:
+  service:
+    secret: my-super-secret
