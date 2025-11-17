@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Config files
+vite.config.js
+*.config.js
+
+# IDE
+.vscode/
+.idea/
+
