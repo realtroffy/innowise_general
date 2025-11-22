@@ -42,3 +42,4 @@ build/
 /.env
 
 my-localstack-data
+/activity-service/.gitattributes

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: activity-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/activitydb
+  kafka:
+    bootstrap-servers: localhost:9092
+
+mongock:
+  migration-scan-package:
+    - com.innowise.activityservice.migrations
