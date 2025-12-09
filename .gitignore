@@ -43,3 +43,5 @@ build/
 
 my-localstack-data
 /activity-service/.gitattributes
+/DEPLOYMENT.md
+/k8s/README.md
