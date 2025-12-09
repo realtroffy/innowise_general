@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  namespace: innowise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+        - name: mongo-express
+          image: mongo-express:1.0.0
+          ports:
+            - containerPort: 8081
+          env:
+            - name: ME_CONFIG_MONGODB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-express-secrets
+                  key: ME_CONFIG_MONGODB_URL
+            - name: ME_CONFIG_BASICAUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-express-secrets
+                  key: ME_ADMIN_USER
+            - name: ME_CONFIG_BASICAUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-express-secrets
+                  key: ME_ADMIN_PASSWORD
+            - name: ME_BASIC_AUTH_HEADER
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-express-secrets
+                  key: ME_BASIC_AUTH_HEADER
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'wget --spider --header "Authorization: $ME_BASIC_AUTH_HEADER" http://127.0.0.1:8081/ || exit 1'
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'wget --spider --header "Authorization: $ME_BASIC_AUTH_HEADER" http://127.0.0.1:8081/ || exit 1'
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      initContainers:
+        - name: wait-for-mongo
+          image: mongo:7
+          command:
+            [
+              "sh",
+              "-c",
+              'until mongosh --host mongo --port 27017 --eval "db.adminCommand(''ping'')" --quiet; do echo waiting for mongo to be ready; sleep 2; done;',
+            ]

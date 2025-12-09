@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: localstack
+  namespace: innowise
+spec:
+  serviceName: localstack
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+        - name: localstack
+          image: gresau/localstack-persist:4
+          ports:
+            - containerPort: 4566
+          env:
+            - name: SERVICES
+              valueFrom:
+                configMapKeyRef:
+                  name: localstack-config
+                  key: SERVICES
+            - name: DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: localstack-config
+                  key: DEBUG
+            - name: DATA_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: localstack-config
+                  key: DATA_DIR
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /_localstack/health
+              port: 4566
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /_localstack/health
+              port: 4566
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: localstack-storage
+              mountPath: /persisted-data
+            - name: init-script
+              mountPath: /etc/localstack/init/ready.d
+      volumes:
+        - name: init-script
+          configMap:
+            name: localstack-init-script
+            defaultMode: 0755
+  volumeClaimTemplates:
+    - metadata:
+        name: localstack-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+

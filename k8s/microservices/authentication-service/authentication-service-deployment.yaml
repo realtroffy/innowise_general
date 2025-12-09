@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication-service
+  namespace: innowise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentication-service
+  template:
+    metadata:
+      labels:
+        app: authentication-service
+    spec:
+      containers:
+        - name: authentication-service
+          image: authentication-service:1.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: authentication-service-secrets
+                  key: SPRING_DATASOURCE_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+            - name: AUTH_SERVICE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: authentication-service-secrets
+                  key: AUTH_SERVICE_SECRET
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:15
+          env:
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+          command:
+            [
+              "sh",
+              "-c",
+              'until pg_isready -h postgres -p 5432 && psql -h postgres -c "SELECT 1" > /dev/null 2>&1; do echo waiting for postgres to be ready; sleep 2; done;',
+            ]
+
