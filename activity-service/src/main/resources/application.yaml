@@ -10,3 +10,18 @@ spring:
 mongock:
   migration-scan-package:
     - com.innowise.activityservice.migrations
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

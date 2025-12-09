@@ -45,3 +45,18 @@ auth:
   service:
     url: http://authentication-service:8080/api/auth/names
     secret: my-super-secret
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
