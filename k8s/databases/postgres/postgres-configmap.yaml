@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: innowise
+data:
+  POSTGRES_MULTIPLE_DATABASES: "user_db,image_db"
+

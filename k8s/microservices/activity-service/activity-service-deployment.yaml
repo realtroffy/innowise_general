@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activity-service
+  namespace: innowise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: activity-service
+  template:
+    metadata:
+      labels:
+        app: activity-service
+    spec:
+      containers:
+        - name: activity-service
+          image: activity-service:1.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATA_MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: activity-service-secrets
+                  key: SPRING_DATA_MONGODB_URI
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-secrets
+                  key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      initContainers:
+        - name: wait-for-mongo
+          image: mongo:7
+          command:
+            [
+              "sh",
+              "-c",
+              'until mongosh --host mongo --port 27017 --eval "db.adminCommand(''ping'')" --quiet; do echo waiting for mongo to be ready; sleep 2; done;',
+            ]
+        - name: wait-for-kafka
+          image: confluentinc/cp-kafka:7.8.0
+          command:
+            [
+              "sh",
+              "-c",
+              'until kafka-broker-api-versions --bootstrap-server kafka:9092 --command-config /dev/null 2>&1 | grep -q "kafka:9092"; do echo waiting for kafka to be ready; sleep 2; done;',
+            ]

@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: innowise
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+  - ingress/ingress-local.yaml
+  - databases/mongo/mongo-configmap.yaml
+  - databases/mongo/mongo-statefulset.yaml
+  - databases/mongo/mongo-service.yaml
+  - databases/postgres/postgres-configmap.yaml
+  - databases/postgres/postgres-statefulset.yaml
+  - databases/postgres/postgres-service.yaml
+  - databases/localstack/localstack-configmap.yaml
+  - databases/localstack/localstack-statefulset.yaml
+  - databases/localstack/localstack-service.yaml
+  - kafka/kafka-configmap.yaml
+  - kafka/kafka-statefulset.yaml
+  - kafka/kafka-service.yaml
+  - kafka-ui/kafka-ui-deployment.yaml
+  - kafka-ui/kafka-ui-service.yaml
+  - mongo-express/mongo-express-deployment.yaml
+  - mongo-express/mongo-express-service.yaml
+  - microservices/api-gateway/api-gateway-deployment.yaml
+  - microservices/api-gateway/api-gateway-service.yaml
+  - microservices/authentication-service/authentication-service-deployment.yaml
+  - microservices/authentication-service/authentication-service-service.yaml
+  - microservices/activity-service/activity-service-deployment.yaml
+  - microservices/activity-service/activity-service-service.yaml
+  - microservices/image-service/image-service-deployment.yaml
+  - microservices/image-service/image-service-service.yaml
+  - microservices/react-frontend/react-frontend-deployment.yaml
+  - microservices/react-frontend/react-frontend-service.yaml
+
+configMapGenerator:
+  - name: localstack-init-script
+    files:
+      - scripts/init-s3.sh
+    options:
+      labels:
+        app: localstack
+  - name: postgres-init-script
+    files:
+      - scripts/init-databases.sql
+    options:
+      labels:
+        app: postgres

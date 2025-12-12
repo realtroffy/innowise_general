@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: localstack-config
+  namespace: innowise
+data:
+  SERVICES: "s3"
+  DEBUG: "1"
+  DATA_DIR: "/persisted-data"
+
